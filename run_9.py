@@ -72,7 +72,7 @@ def run(single_position):
 		for w in combinations(position_dict['W'], 4):
 			for d in combinations(position_dict['D'], 2):
 				salary = total_lineup(g, c, w, d, 'Salary')	
-				if 59500 < salary <= 60000:
+				if 53000 < salary <= 55000:
 					lineup = total_lineup(g, c, w, d, 'Projection')
 					if lineup >= optimal_lineup_projection:
 						optimal_lineup_projection = lineup

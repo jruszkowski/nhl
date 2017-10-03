@@ -99,4 +99,4 @@ if __name__=="__main__":
 	print (datetime.datetime.now() - start_time)
 	print (max_projection, team)
 	df = pd.DataFrame(results)
-	df.to_csv('results.csv)
+	df.to_csv('results.csv')

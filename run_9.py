@@ -77,7 +77,7 @@ def run(single_position):
 					if lineup >= optimal_lineup_projection:
 						optimal_lineup_projection = lineup
 						optimal_lineup = [g, c, w, d]
-					print (optimal_lineup_projection, optimal_lineup)
+	print (optimal_lineup_projection, optimal_lineup)
 	return (optimal_lineup_projection, optimal_lineup)
 
 
@@ -98,3 +98,5 @@ if __name__=="__main__":
 
 	print (datetime.datetime.now() - start_time)
 	print (max_projection, team)
+	df = pd.DataFrame(results)
+	df.to_csv('results.csv)

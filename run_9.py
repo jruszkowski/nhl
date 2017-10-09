@@ -55,48 +55,102 @@ for item in position_dict.items():
                 player_dict[plyr_name] = item[1][plyr_name]
 
 
-def total_lineup(g, c, w, d, key):
-	team_list = []
+def total_lineup_all(combo, key):
+        g = combo[0]
+        c = combo[1]
+        w = combo[2]
+        d = combo[3]
+
 	c = [x for x in c]
 	w = [x for x in w]
 	d = [x for x in d]
 	team_list = [g] + c + w + d
 	return round(sum([player_dict[x][key] for x in team_list]), 2)
 
- 
-def run(single_position):
-	optimal_lineup_projection = 0
-	optimal_lineup = []
-	g = single_position
-	for c in combinations(position_dict['C'], 2):
-		for w in combinations(position_dict['W'], 4):
-			for d in combinations(position_dict['D'], 2):
-				salary = total_lineup(g, c, w, d, 'Salary')	
-				if 59500 < salary <= 60000:
-					lineup = total_lineup(g, c, w, d, 'Projection')
-					if lineup >= optimal_lineup_projection:
-						optimal_lineup_projection = lineup
-						optimal_lineup = [g, c, w, d]
-	print (optimal_lineup_projection, optimal_lineup)
-	return (optimal_lineup_projection, optimal_lineup)
+#        return round(position_dict['G'][g][key] + \
+#                position_dict['C'][c[0]][key] + \
+#                position_dict['C'][c[1]][key] + \
+#                position_dict['W'][rb[0]][key] + \
+#                position_dict['W'][rb[1]][key] + \
+#                position_dict['W'][wr[2]][key] + \
+#                position_dict['W'][wr[3]][key] + \
+#                position_dict['D'][d[0]][key] + \
+#                position_dict['D'][d[1]][key], 2)
 
 
-def get_combo_list():
-	return [(g) for g in position_dict['G'].keys()] 
+def create_salary_dict():
+        return {salary: {'players': [], 'projection': 0} for salary in range(0,55100,100)}
 
+combos = {'C': 2, 'W': 4, 'D': 2}
+c_dict = create_salary_dict()
+w_dict = create_salary_dict()
+d_dict = create_salary_dict()
+g_list = [g for g in position_dict['G'].keys()]
+
+def create_combo_dictionaries(combo_args):
+        position = combo_args[0]
+        count = combo_args[1]
+        if position == 'C':
+                for combo in combinations(position_dict[position], count):
+                        projection = add_func(position, combo, 'Projection')
+                        salary = add_func(position, combo, 'Salary')
+                        if projection > c_dict[salary]['projection']:
+                                c_dict[salary]['projection'] = projection
+                                c_dict[salary]['players'] = combo
+        elif position == 'W':
+                for combo in combinations(position_dict[position], count):
+                        projection = add_func(position, combo, 'Projection')
+                        salary = add_func(position, combo, 'Salary')
+                        if projection > w_dict[salary]['projection']:
+                                w_dict[salary]['projection'] = projection
+                                w_dict[salary]['players'] = combo
+        elif position == 'D':
+                for combo in combinations(position_dict[position], count):
+                        projection = add_func(position, combo, 'Projection')
+                        salary = add_func(position, combo, 'Salary')
+                        if projection > d_dict[salary]['projection']:
+                                d_dict[salary]['projection'] = projection
+                                d_dict[salary]['players'] = combo
+
+
+def clean_dict(dict_zeros):
+        for key in dict_zeros.keys():
+                if dict_zeros[key]['projection'] == 0:
+                        del dict_zeros[key]
+        return dict_zeros
+
+def add_func(position, plyrs, key):
+        plyrs = [x for x in plyrs]
+        return sum([position_dict[position][x][key] for x in plyrs])
 
 if __name__=="__main__":
 	start_time = datetime.datetime.now()
-	results = Parallel(n_jobs=-1)(delayed(run)(i) for i in get_combo_list())
-	print (len(results))
-	max_projection = 0
-	team = []
-	for i in results:
-		if i[0] > max_projection:
-			max_projection = i[0]
-			team = i[1]
+        Parallel(n_jobs=-1)(delayed(create_combo_dictionaries)(i) for i in combos.items())
+	c_dict = clean_dict(c_dict)
+	w_dict = clean_dict(w_dict)
+	d_dict = clean_dict(d_dict)
 
-	print (datetime.datetime.now() - start_time)
-	print (max_projection, team)
-	df = pd.DataFrame(results)
-	df.to_csv('results.csv)
+        total_dict = {(g, c_dict[c]['players'], w_dict[w]['players'], d_dict[d]['players']): \
+                {'salary': total_lineup_all((g, \
+                                c_dict[c]['players'], \
+                                w_dict[w]['players'], \
+                                d_dict[d]['players']), 'Salary'),\
+                 'projection': total_lineup_all((g, \
+                                c_dict[c]['players'], \
+                                w_dict[w]['players'], \
+                                d_dict[d]['players']), 'Projection')} \
+                for g in g_list \
+                for c in c_dict.keys() \
+                for w in w_dict.keys() \
+                for d in d_dict.keys() \
+                if total_lineup_all((g, \
+                        c_dict[c]['players'], w_dict[w]['players'], d_dict[d]['players']), 'Salary') <= 55000}
+
+
+
+	max_projection = max([total_dict[x]['projection'] for x in total_dict.keys()])
+        for key in total_dict.keys():
+                if total_dict[key]['projection'] == max_projection:
+                        print key
+        print (datetime.datetime.now() - start_time)
+

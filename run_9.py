@@ -6,8 +6,8 @@ import numpy as np
 from joblib import Parallel, delayed
 import datetime
 
-base_page = ['http://games.espn.com/fhl/playerrater?slotCategoryGroup=1&', \
-	'http://games.espn.com/fhl/playerrater?slotCategoryGroup=2&']
+base_page = ['http://games.espn.com/fhl/playerrater?slotCategoryGroup=1&&splitTypeId=0&playerRaterSeasonId=2017', \
+	'http://games.espn.com/fhl/playerrater?slotCategoryGroup=2&&splitTypeId=0&playerRaterSeasonId=2017']
 addon = '&startIndex='
 startindex = list(range(50, 750, 50))
 plyr_dict = {}

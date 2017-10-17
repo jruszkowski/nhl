@@ -60,7 +60,6 @@ def total_lineup_all(combo, key):
         c = combo[1]
         w = combo[2]
         d = combo[3]
-
 	c = [x for x in c]
 	w = [x for x in w]
 	d = [x for x in d]
@@ -72,10 +71,6 @@ def create_salary_dict():
         return {salary: {'players': [], 'projection': 0} for salary in range(0,55100,100)}
 
 combos = {'C': 2, 'W': 4, 'D': 2}
-c_dict = create_salary_dict()
-w_dict = create_salary_dict()
-d_dict = create_salary_dict()
-g_list = [g for g in position_dict['G'].keys()]
 
 def create_combo_dictionaries(combo_args):
         position = combo_args[0]
@@ -115,31 +110,33 @@ def add_func(position, plyrs, key):
 
 if __name__=="__main__":
 	start_time = datetime.datetime.now()
-        Parallel(n_jobs=-1)(delayed(create_combo_dictionaries)(i) for i in combos.items())
+	c_dict = create_salary_dict()
+	w_dict = create_salary_dict()
+	d_dict = create_salary_dict()
+	g_list = [g for g in position_dict['G'].keys()]
+        #Parallel(n_jobs=-1)(delayed(create_combo_dictionaries)(i) for i in combos.items())
+	for i in combos.items():
+		create_combo_dictionaries(i)
 	c_dict = clean_dict(c_dict)
 	w_dict = clean_dict(w_dict)
 	d_dict = clean_dict(d_dict)
-
-        total_dict = {(g, c_dict[c]['players'], w_dict[w]['players'], d_dict[d]['players']): \
-                {'salary': total_lineup_all((g, \
-                                c_dict[c]['players'], \
-                                w_dict[w]['players'], \
-                                d_dict[d]['players']), 'Salary'),\
-                 'projection': total_lineup_all((g, \
-                                c_dict[c]['players'], \
-                                w_dict[w]['players'], \
-                                d_dict[d]['players']), 'Projection')} \
-                for g in g_list \
-                for c in c_dict.keys() \
-                for w in w_dict.keys() \
-                for d in d_dict.keys() \
-                if total_lineup_all((g, \
-                        c_dict[c]['players'], w_dict[w]['players'], d_dict[d]['players']), 'Salary') <= 55000}
-
-
-
-	max_projection = max([total_dict[x]['projection'] for x in total_dict.keys()])
-        for key in total_dict.keys():
-                if total_dict[key]['projection'] == max_projection:
-                        print key
-        print (datetime.datetime.now() - start_time)
+	print (len(c_dict), len(w_dict), len(d_dict))
+	total_dict = {(x for x in [g] + [center for center in c_dict[c]['players']] + [wing for wing in w_dict[w]['players']] + [defense for defense in d_dict[d]['players']]): \
+		{'salary': total_lineup_all((g, \
+				c_dict[c]['players'], \
+				w_dict[w]['players'], \
+				d_dict[d]['players']), 'Salary'),\
+		 'projection': total_lineup_all((g, \
+				c_dict[c]['players'], \
+				w_dict[w]['players'], \
+				d_dict[d]['players']), 'Projection')} \
+		for g in g_list \
+		for c in c_dict.keys() \
+		for w in w_dict.keys() \
+		for d in d_dict.keys() \
+		if 50000 <= player_dict[g]['Salary'] + c + w + d <= 55000}
+	print(len(total_dict))
+	total_dict = {y['projection']: [plyr for plyr in x] for x,y in total_dict.items()}
+	df = pd.DataFrame.from_dict(total_dict, orient='index').sort_index(ascending=False)
+	print (df.head(10))
+	print (datetime.datetime.now() - start_time)

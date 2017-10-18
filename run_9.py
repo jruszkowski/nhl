@@ -6,8 +6,10 @@ import numpy as np
 from joblib import Parallel, delayed
 import datetime
 
-base_page = ['http://games.espn.com/fhl/playerrater?slotCategoryGroup=1&&splitTypeId=0&playerRaterSeasonId=2017', \
-	'http://games.espn.com/fhl/playerrater?slotCategoryGroup=2&&splitTypeId=0&playerRaterSeasonId=2017']
+#base_page = ['http://games.espn.com/fhl/playerrater?slotCategoryGroup=1&&splitTypeId=0&playerRaterSeasonId=2017', \
+#	'http://games.espn.com/fhl/playerrater?slotCategoryGroup=2&&splitTypeId=0&playerRaterSeasonId=2017']
+base_page = ['http://games.espn.com/fhl/playerrater?slotCategoryGroup=1&', \
+	'http://games.espn.com/fhl/playerrater?slotCategoryGroup=2&']
 addon = '&startIndex='
 startindex = list(range(50, 750, 50))
 plyr_dict = {}
@@ -121,7 +123,10 @@ if __name__=="__main__":
 	w_dict = clean_dict(w_dict)
 	d_dict = clean_dict(d_dict)
 	print (len(c_dict), len(w_dict), len(d_dict))
-	total_dict = {(x for x in [g] + [center for center in c_dict[c]['players']] + [wing for wing in w_dict[w]['players']] + [defense for defense in d_dict[d]['players']]): \
+	total_dict = {(x for x in [g] 
+		+ [center for center in c_dict[c]['players']] \
+		+ [wing for wing in w_dict[w]['players']] \
+		+ [defense for defense in d_dict[d]['players']]): \
 		{'salary': total_lineup_all((g, \
 				c_dict[c]['players'], \
 				w_dict[w]['players'], \
